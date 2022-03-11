@@ -5,6 +5,7 @@ of the 2021/22 robotics season.
 
 * The [RoboRIO Controller](RoboRIO-User-Manual.pdf)
 * The [Talon SRX Motor Speed Controller](Talon-SRX-User-Manual.pdf)
+* The [Talon SRX Software](Talon-SRX-Software-Manual.pdf)
 * The [Power Distribution Panel](Power-Distribution-Panel-User-Manual.pdf)
 
 # Diagrams
