@@ -6,3 +6,8 @@ of the 2021/22 robotics season.
 * The [RoboRIO Controller](RoboRIO-User-Manual.pdf)
 * The [Talon SRX Motor Speed Controller](Talon-SRX-User-Manual.pdf)
 * The [Power Distribution Panel](Power-Distribution-Panel-User-Manual.pdf)
+
+# Diagrams
+
+* The [General Wiring Diagram](General-Wiring-Diagram.svg), which shows the
+  overall wiring with PDP, RoboRIO Controller, and the motor controllers.
