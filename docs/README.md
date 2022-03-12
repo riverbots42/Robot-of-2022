@@ -8,6 +8,8 @@ of the 2021/22 robotics season.
 * The [Talon SRX Software](Talon-SRX-Software-Manual.pdf)
 * The [Power Distribution Panel](Power-Distribution-Panel-User-Manual.pdf)
 
+Feel free to add any additional documents you find as you go.
+
 # Diagrams
 
 * The [General Wiring Diagram](General-Wiring-Diagram.svg), which shows the
