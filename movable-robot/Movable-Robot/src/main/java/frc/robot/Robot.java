@@ -23,13 +23,16 @@ public class Robot extends TimedRobot {
   TalonSRX lefty2 = new TalonSRX(1);
   TalonSRX righty = new TalonSRX(2);
   TalonSRX righty2 = new TalonSRX(3);
+  int throttle = 55;
+  int previousPov = 0;
   int lcal = 0;
   int rcal = 0;
   //private final Talon m_leftDrive = new Talon(0);
   //private final Talon m_rightDrive = new Talon(2);
   // private final DifferentialDrive m_robotDrive = new DifferentialDrive(lefty, righty);
-  private final Joystick l_stick = new Joystick(0);
-  private final Joystick r_stick = new Joystick(1);
+  //private final Joystick l_stick = new Joystick(0);
+  //private final Joystick r_stick = new Joystick(1);
+  private final Joystick stick = new Joystick(0);
   private final Timer m_timer = new Timer();
 
   /**
@@ -43,6 +46,7 @@ public class Robot extends TimedRobot {
     // gearbox is constructed, you might have to invert the left side instead.
     righty.setInverted(true);
     System.out.print("here");
+    //l_stick.getXChannel(
   }
 
   /** This function is run once each time the robot enters autonomous mode. */
@@ -66,29 +70,77 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     //m_robotDrive.arcadeDrive(0.5, 0.0);
-    lcal = pct(l_stick.getY(), 0);
-    rcal= pct(r_stick.getY(), 0);
+    //Channel 1 is Left stick
+    stick.setXChannel(1);
+    //Channel 3 is RT
+    stick.setZChannel(3);
+    //Channel 5 is Rightstick
+    stick.setYChannel(5);
+   
+    lcal = pct(stick.getX(), 0);
+    rcal= pct(stick.getY(), 0);
+    
 
   }
-  public static int pct (double raw,int cal) {
-    return (int)(raw*100.0) - cal;
+  public  int pct (double raw,int cal) {
+    return (int)(raw*throttle*1.0) - cal;
+  }
+  public int povToDirection()
+  {
+    int pov = stick.getPOV();
+    //this gives upish case from d-pad throttle input
+    if(pov > 270 || (pov > -1 && pov < 90) )
+    {
+      return +1;
+    }
+
+    if (pov > 90 && pov < 270)
+    {
+      return -1;
+    }
+    return 0;
   }
   /** This function is called periodically during teleoperated mode. */
   @Override
   public void teleopPeriodic() {
     //m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
-    
-    int lpct = pct(l_stick.getY(), lcal);
-    if(lpct <10 &&lpct > -10) {
+    //System.out.printf("%d:%f\n",stick.getPOV(),stick.getZ());
+    int currentPov = povToDirection();
+    if (currentPov != previousPov )
+    {
+    if (currentPov == 0 ){
+      previousPov = currentPov;
+    }
+    else if (currentPov == +1){
+      throttle = throttle+10;
+      if (throttle >105){
+        throttle = 105;
+      }
+      previousPov = currentPov;
+    }
+    else if ( currentPov==-1){
+      throttle = throttle-10;
+      if (throttle <5){
+        throttle = 5;
+      }
+      previousPov = currentPov;
+    }
+    System.out.printf("throttle = %d\n",throttle);
+  }
+    int lpct = pct(stick.getX(), 0);
+    /*if(lpct <1 &&lpct > -1) {
       lpct = 0;
     }
+    */
     lefty.set(ControlMode.PercentOutput, lpct);
     lefty2.set(ControlMode.PercentOutput, lpct);
 
-    int rpct = pct(r_stick.getY(), rcal);
-    if(rpct <10 &&rpct > -10) {
+    
+
+    int rpct = pct(stick.getY(), 0);
+    /*if(rpct <1 &&rpct > -1) {
       rpct = 0;
-    }
+    }*/
     righty.set(ControlMode.PercentOutput, rpct);
     righty2.set(ControlMode.PercentOutput, rpct);
 
