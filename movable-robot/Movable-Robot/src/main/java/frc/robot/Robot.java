@@ -6,11 +6,13 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+
+
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -23,6 +25,10 @@ public class Robot extends TimedRobot {
   TalonSRX lefty2 = new TalonSRX(1);
   TalonSRX righty = new TalonSRX(2);
   TalonSRX righty2 = new TalonSRX(3);
+  VictorSPX basket = new VictorSPX(4);
+  int rout = 0;
+  int lout = 0;
+  int throttleStep = 1;
   int throttle = 55;
   int previousPov = 0;
   int lcal = 0;
@@ -105,6 +111,9 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     //m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
     //System.out.printf("%d:%f\n",stick.getPOV(),stick.getZ());
+
+    basket.set(ControlMode.PercentOutput, 1);
+
     int currentPov = povToDirection();
     if (currentPov != previousPov )
     {
@@ -127,22 +136,42 @@ public class Robot extends TimedRobot {
     }
     System.out.printf("throttle = %d\n",throttle);
   }
-    int lpct = pct(stick.getX(), 0);
+    int ltarget = pct(stick.getX(), 0);
     /*if(lpct <1 &&lpct > -1) {
       lpct = 0;
     }
     */
-    lefty.set(ControlMode.PercentOutput, lpct);
-    lefty2.set(ControlMode.PercentOutput, lpct);
-
-    
-
-    int rpct = pct(stick.getY(), 0);
+    int rtarget = pct(stick.getY(), 0);
     /*if(rpct <1 &&rpct > -1) {
       rpct = 0;
     }*/
-    righty.set(ControlMode.PercentOutput, rpct);
-    righty2.set(ControlMode.PercentOutput, rpct);
+
+if (lout < ltarget) {
+  lout+=throttleStep;
+  if(lout > ltarget) {
+    lout = ltarget;
+  }
+} else if (lout > ltarget) {
+  lout-=throttleStep;
+  if (lout < ltarget){
+    lout = ltarget;
+  }
+}
+if (rout < rtarget) {
+  rout+=throttleStep;
+  if(rout > rtarget) {
+    rout = rtarget;
+  }
+} else if (rout > rtarget) {
+  rout-=throttleStep;
+  if (rout < rtarget){
+    rout = rtarget;
+  }
+}
+    lefty.set(ControlMode.PercentOutput, 1.0*lout/100.0);
+    lefty2.set(ControlMode.PercentOutput, 1.0*lout/100.0);
+    righty.set(ControlMode.PercentOutput, 1.0*rout/100.0);
+    righty2.set(ControlMode.PercentOutput, 1.0*rout/100.0);
 
    // System.out.printf("hello %d %d\n", rpct, lpct);
   }
