@@ -51,6 +51,7 @@ public class Robot extends TimedRobot {
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
     righty.setInverted(true);
+    righty2.setInverted(true);
     System.out.print("here");
     //l_stick.getXChannel(
   }
@@ -99,7 +100,7 @@ public class Robot extends TimedRobot {
     {
       return +1;
     }
-
+    //this gives downish case
     if (pov > 90 && pov < 270)
     {
       return -1;
@@ -115,6 +116,7 @@ public class Robot extends TimedRobot {
     basket.set(ControlMode.PercentOutput, 1);
 
     int currentPov = povToDirection();
+    //dpad up increases throttle, dpad down decreases
     if (currentPov != previousPov )
     {
     if (currentPov == 0 ){
@@ -145,7 +147,7 @@ public class Robot extends TimedRobot {
     /*if(rpct <1 &&rpct > -1) {
       rpct = 0;
     }*/
-
+//steps motor power to input
 if (lout < ltarget) {
   lout+=throttleStep;
   if(lout > ltarget) {
@@ -168,6 +170,7 @@ if (rout < rtarget) {
     rout = rtarget;
   }
 }
+    //converts output to a decimal percent to prevent the motors from having only o and 100 power
     lefty.set(ControlMode.PercentOutput, 1.0*lout/100.0);
     lefty2.set(ControlMode.PercentOutput, 1.0*lout/100.0);
     righty.set(ControlMode.PercentOutput, 1.0*rout/100.0);
