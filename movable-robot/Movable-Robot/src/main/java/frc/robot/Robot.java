@@ -12,6 +12,11 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+
 
 
 /**
@@ -41,6 +46,13 @@ public class Robot extends TimedRobot {
   private final Joystick stick = new Joystick(0);
   private final Timer m_timer = new Timer();
 
+  boolean reverse_triggered = false;
+  boolean is_reverse = false;
+
+  UsbCamera fronty;
+  UsbCamera reary;
+  NetworkTableEntry cam;
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -54,6 +66,10 @@ public class Robot extends TimedRobot {
     righty2.setInverted(true);
     System.out.print("here");
     //l_stick.getXChannel(
+    
+    cam = NetworkTableInstance.getDefault().getTable("").getEntry("CameraSelection");
+    fronty = CameraServer.startAutomaticCapture(0);
+    reary = CameraServer.startAutomaticCapture(1);
   }
 
   /** This function is run once each time the robot enters autonomous mode. */
@@ -113,8 +129,21 @@ public class Robot extends TimedRobot {
     //m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
     //System.out.printf("%d:%f\n",stick.getPOV(),stick.getZ());
 
-    basket.set(ControlMode.PercentOutput, 1);
+    basket.set(ControlMode.PercentOutput, (stick.getRawAxis(2)/2)-(stick.getRawAxis(3)/2));
+  
 
+    if (stick.getRawButtonPressed(1)){
+      is_reverse = !is_reverse;
+      System.out.println("here");
+    }
+
+    if(is_reverse == true) {
+      cam.setString(reary.getName());
+    } else {
+      cam.setString(fronty.getName());
+    } 
+    System.out.printf("Left: %f, Right: %f\n", stick.getRawAxis(2), stick.getRawAxis(3));
+    
     int currentPov = povToDirection();
     //dpad up increases throttle, dpad down decreases
     if (currentPov != previousPov )
