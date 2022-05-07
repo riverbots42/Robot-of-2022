@@ -38,6 +38,11 @@ public class Robot extends TimedRobot {
   int previousPov = 0;
   int lcal = 0;
   int rcal = 0;
+  int maxValue = 105;
+  int minValue = 5;
+  int changeInThrottle = 10;
+  int stickDirectlyLeft = 270;
+  int stickDirectlyRight = 90;
 
   private final Joystick stick = new Joystick(0);
   private final Timer m_timer = new Timer();
@@ -109,11 +114,11 @@ public class Robot extends TimedRobot {
   public int povToDirection() {
     int pov = stick.getPOV();
     // this gives upish case from d-pad throttle input
-    if (pov > 270 || (pov > -1 && pov < 90)) {
+    if (pov > stickDirectlyLeft || (pov > -1 && pov < stickDirectlyRight)) {
       return +1;
     }
     // this gives downish case
-    if (pov > 90 && pov < 270) {
+    if (pov > stickDirectlyRight && pov < stickDirectlyLeft) {
       return -1;
     }
     return 0;
@@ -144,15 +149,15 @@ public class Robot extends TimedRobot {
       if (currentPov == 0) {
         previousPov = currentPov;
       } else if (currentPov == +1) {
-        throttle = throttle + 10;
-        if (throttle > 105) {
-          throttle = 105;
+        throttle = throttle + changeInThrottle;
+        if (throttle > maxValue) {
+          throttle = maxValue;
         }
         previousPov = currentPov;
       } else if (currentPov == -1) {
-        throttle = throttle - 10;
-        if (throttle < 5) {
-          throttle = 5;
+        throttle = throttle - changeInThrottle;
+        if (throttle < minValue) {
+          throttle = minValue;
         }
         previousPov = currentPov;
       }
