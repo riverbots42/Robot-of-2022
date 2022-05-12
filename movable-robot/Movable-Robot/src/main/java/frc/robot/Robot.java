@@ -10,10 +10,13 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-
+import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
+import edu.wpi.first.wpilibj.motorcontrol.PWMVenom;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -30,7 +33,8 @@ public class Robot extends TimedRobot {
   TalonSRX rightyA = new TalonSRX(2);
   TalonSRX rightyB = new TalonSRX(3);
   VictorSPX basket = new VictorSPX(4);
-
+  AddressableLED leds = new AddressableLED(0);
+  
   int rout = 0;
   int lout = 0;
   int throttleStep = 1;
@@ -102,6 +106,21 @@ public class Robot extends TimedRobot {
     // deprecated?
     lcal = pct(stick.getX(), 0);
     rcal = pct(stick.getY(), 0);
+
+    AddressableLEDBuffer ledBuff = new AddressableLEDBuffer(60);
+    leds.setLength(ledBuff.getLength());
+    leds.setData(ledBuff);
+    leds.start();
+
+    for (var i = 0; i < ledBuff.getLength()/2; i++) {
+      // Sets the specified LED to the RGB values for red
+      ledBuff.setRGB(i, 255, 0, 0);
+      ledBuff.setRGB(i+ledBuff.getLength()/2, 0, 255, 0);
+
+   }
+   
+   leds.setData(ledBuff);
+
   }
 
   public int pct(double raw, int cal) {
