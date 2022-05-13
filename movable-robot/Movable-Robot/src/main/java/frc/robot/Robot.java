@@ -57,6 +57,7 @@ public class Robot extends TimedRobot {
 
   boolean reverse_triggered = false;
   boolean is_reverse = false;
+  boolean STOP = false;
 
   UsbCamera fronty;
   UsbCamera reary;
@@ -220,6 +221,19 @@ public class Robot extends TimedRobot {
         rout = rtarget;
       }
     }
+
+    if (stick.getRawButton(3) && stick.getRawButton(4)) {
+      STOP = true;
+    }
+    if (currentPov != 0){
+      STOP = false;
+    }
+
+    if (STOP == true){
+      rout = 0;
+      lout = 0;
+    }
+    
     // converts output to a decimal percent to prevent the motors from having only o
     // and 100 power
     leftyA.set(ControlMode.PercentOutput, 1.0 * lout / 100.0);
