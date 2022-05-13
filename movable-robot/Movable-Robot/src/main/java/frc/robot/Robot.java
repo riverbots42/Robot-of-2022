@@ -12,11 +12,10 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
-import edu.wpi.first.wpilibj.motorcontrol.PWMVenom;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -33,8 +32,13 @@ public class Robot extends TimedRobot {
   TalonSRX rightyA = new TalonSRX(2);
   TalonSRX rightyB = new TalonSRX(3);
   VictorSPX basket = new VictorSPX(4);
-  AddressableLED leds = new AddressableLED(0);
+  AddressableLED ledsT = new AddressableLED(0);
+  AddressableLEDBuffer ledBuffT = new AddressableLEDBuffer(30);
   
+  DigitalOutput horn = new DigitalOutput(0);
+
+  int ltarget = 0;
+  int rtarget = 0;
   int rout = 0;
   int lout = 0;
   int throttleStep = 1;
@@ -70,6 +74,7 @@ public class Robot extends TimedRobot {
     // gearbox is constructed, you might have to invert the left side instead.
     rightyA.setInverted(true);
     rightyB.setInverted(true);
+    horn.set(false);
 
     // Initializes the cameras (uses a special UI that we do not have)
     cam = NetworkTableInstance.getDefault().getTable("").getEntry("CameraSelection");
@@ -90,6 +95,16 @@ public class Robot extends TimedRobot {
     return;
   }
 
+  public void setLeds(int red, int green) {
+    for (var i = 0; i < ledBuffT.getLength()/2; i++) {
+      // Sets the specified LED to the RGB values for red
+      // ledBuff.setRGB(i, 255, 0, 0);
+      ledBuffT.setRGB(i, red, green, 0);
+      ledBuffT.setRGB(i+ledBuffT.getLength()/2, green,red, 0);
+    }
+   ledsT.setData(ledBuffT);
+  }
+
   /**
    * This function is called once each time the robot enters teleoperated mode.
    */
@@ -107,20 +122,9 @@ public class Robot extends TimedRobot {
     lcal = pct(stick.getX(), 0);
     rcal = pct(stick.getY(), 0);
 
-    AddressableLEDBuffer ledBuff = new AddressableLEDBuffer(60);
-    leds.setLength(ledBuff.getLength());
-    leds.setData(ledBuff);
-    leds.start();
-
-    for (var i = 0; i < ledBuff.getLength()/2; i++) {
-      // Sets the specified LED to the RGB values for red
-      ledBuff.setRGB(i, 255, 0, 0);
-      ledBuff.setRGB(i+ledBuff.getLength()/2, 0, 255, 0);
-
-   }
-   
-   leds.setData(ledBuff);
-
+    ledsT.setLength(ledBuffT.getLength());
+    ledsT.setData(ledBuffT);
+    ledsT.start();
   }
 
   public int pct(double raw, int cal) {
@@ -155,10 +159,18 @@ public class Robot extends TimedRobot {
       System.out.println("here");
     }
 
+    horn.set(stick.getRawButton(2));
+
     if (is_reverse == true) {
+      setLeds(255, 0);
       cam.setString(reary.getName());
+      ltarget = -1 * pct(stick.getX(), 0);
+      rtarget = -1 * pct(stick.getY(), 0);
     } else {
+      setLeds(0, 255);
       cam.setString(fronty.getName());
+      ltarget = pct(stick.getX(), 0);
+      rtarget = pct(stick.getY(), 0);
     }
     System.out.printf("Left: %f, Right: %f\n", stick.getRawAxis(2), stick.getRawAxis(3));
 
@@ -182,9 +194,8 @@ public class Robot extends TimedRobot {
       }
       System.out.printf("throttle = %d\n", throttle);
     }
-    int ltarget = pct(stick.getX(), 0);
-
-    int rtarget = pct(stick.getY(), 0);
+    //int ltarget = pct(stick.getX(), 0);
+   // int rtarget = pct(stick.getY(), 0);
 
     // steps motor power to input
     if (lout < ltarget) {
