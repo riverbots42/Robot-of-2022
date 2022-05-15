@@ -6,6 +6,8 @@
 
 package frc.robot;
 
+import javax.lang.model.util.ElementScanner6;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
@@ -33,8 +35,8 @@ public class Robot extends TimedRobot {
   TalonSRX rightyB = new TalonSRX(3);
   VictorSPX basket = new VictorSPX(4);
   AddressableLED ledsT = new AddressableLED(0);
-  AddressableLEDBuffer ledBuffT = new AddressableLEDBuffer(30);
-  
+  private final int NUM_LEDS = 30;
+  AddressableLEDBuffer ledBuffT = new AddressableLEDBuffer(NUM_LEDS);
   DigitalOutput horn = new DigitalOutput(0);
 
   int ltarget = 0;
@@ -51,6 +53,7 @@ public class Robot extends TimedRobot {
   int changeInThrottle = 10;
   int stickDirectlyLeft = 270;
   int stickDirectlyRight = 90;
+  int currentLed = 0;
 
   private final Joystick stick = new Joystick(0);
   private final Timer m_timer = new Timer();
@@ -81,6 +84,14 @@ public class Robot extends TimedRobot {
     cam = NetworkTableInstance.getDefault().getTable("").getEntry("CameraSelection");
     fronty = CameraServer.startAutomaticCapture(0);
     reary = CameraServer.startAutomaticCapture(1);
+
+    ledsT.setLength(ledBuffT.getLength());
+    for(var i = 0; i < ledBuffT.getLength(); i++) {
+      // Set all leds to blue
+      ledBuffT.setRGB(i, 0, 0, 255);
+    }
+    ledsT.setData(ledBuffT);
+    ledsT.start();
   }
 
   /** This function is run once each time the robot enters autonomous mode. */
@@ -106,6 +117,53 @@ public class Robot extends TimedRobot {
    ledsT.setData(ledBuffT);
   }
 
+  public void setChaseLeds(int red, int green, int blue) {
+    int redf = red / (ledBuffT.getLength()/4);
+    int greenf = green / (ledBuffT.getLength()/4);
+    int bluef = blue / (ledBuffT.getLength()/4);  
+    for (int offset=0; offset<ledBuffT.getLength(); offset+=ledBuffT.getLength()/2) {
+      if (offset != 0) {
+        int tmp = red;
+        red = green;
+        green = tmp;
+        int tmpf = redf;
+        redf = greenf;
+        greenf = tmpf;
+      }
+      ledBuffT.setRGB(currentLed+offset, red, green, blue);
+      for (int i = 1; i < ledBuffT.getLength()/4; i++) {
+        int redt = red - (redf * i);
+        int greent = green - (greenf * i);
+        int bluet = blue - (bluef * i);
+        int prevled = currentLed - i;
+        if (prevled < 0) {
+          prevled += ledBuffT.getLength()/2;
+        }
+        int nextled = currentLed + i;
+        if (nextled >= ledBuffT.getLength()/2) {
+          nextled -= ledBuffT.getLength()/2;
+        }
+        ledBuffT.setRGB(prevled+offset, redt, greent, bluet);
+        ledBuffT.setRGB(nextled+offset, redt, greent, bluet);
+      }  
+    }
+  }
+
+  public void setChaseLed() {
+    ledsT.setData(ledBuffT);
+    if (isEnabled() == true) {
+      if (is_reverse) {
+        setChaseLeds(255, 0, 0);
+      } else {
+        setChaseLeds(0, 255, 0);
+      }
+    }
+    currentLed = currentLed + 1;
+    if (currentLed == NUM_LEDS/2) {
+      currentLed = 0;    
+    }
+  }
+
   /**
    * This function is called once each time the robot enters teleoperated mode.
    */
@@ -122,10 +180,15 @@ public class Robot extends TimedRobot {
     // deprecated?
     lcal = pct(stick.getX(), 0);
     rcal = pct(stick.getY(), 0);
-
-    ledsT.setLength(ledBuffT.getLength());
+  }
+  @Override
+  public void teleopExit(){
+    for(var i = 0; i < ledBuffT.getLength(); i++) {
+      // Set all leds to blue
+      ledBuffT.setRGB(i, 0, 0, 255);
+    }
     ledsT.setData(ledBuffT);
-    ledsT.start();
+    horn.set(false);
   }
 
   public int pct(double raw, int cal) {
@@ -163,12 +226,14 @@ public class Robot extends TimedRobot {
     horn.set(stick.getRawButton(2));
 
     if (is_reverse == true) {
-      setLeds(255, 0);
+      // setLeds(255, 0);
+      setChaseLed();
       cam.setString(reary.getName());
       ltarget = -1 * pct(stick.getX(), 0);
       rtarget = -1 * pct(stick.getY(), 0);
     } else {
-      setLeds(0, 255);
+      // setLeds(0, 255);
+      setChaseLed();
       cam.setString(fronty.getName());
       ltarget = pct(stick.getX(), 0);
       rtarget = pct(stick.getY(), 0);
