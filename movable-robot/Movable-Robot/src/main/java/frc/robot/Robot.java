@@ -8,6 +8,7 @@ package frc.robot;
 
 import javax.lang.model.util.ElementScanner6;
 
+import com.ctre.phoenix.CANifier.PWMChannel;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
@@ -16,6 +17,7 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -38,7 +40,9 @@ public class Robot extends TimedRobot {
   private final int NUM_LEDS = 30;
   AddressableLEDBuffer ledBuffT = new AddressableLEDBuffer(NUM_LEDS);
   DigitalOutput horn = new DigitalOutput(0);
+  DigitalOutput jaws = new DigitalOutput(1);
 
+  int honkOfDeath = 100;
   int ltarget = 0;
   int rtarget = 0;
   int rout = 0;
@@ -97,13 +101,19 @@ public class Robot extends TimedRobot {
   /** This function is run once each time the robot enters autonomous mode. */
   @Override
   public void autonomousInit() {
-    m_timer.reset();
+  //  m_timer.reset();
     m_timer.start();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
+    leftyA.set(ControlMode.PercentOutput, 0.10);
+    leftyB.set(ControlMode.PercentOutput, 0.10);
+    rightyA.set(ControlMode.PercentOutput, -0.10);
+    rightyB.set(ControlMode.PercentOutput, -0.10);
+    ledBuffT.setRGB(0, 255, 255, 255);
+    ledsT.setData(ledBuffT);
     return;
   }
 
@@ -220,11 +230,29 @@ public class Robot extends TimedRobot {
 
     if (stick.getRawButtonPressed(1)) {
       is_reverse = !is_reverse;
-      System.out.println("here");
+    //  System.out.println("here");
     }
 
     horn.set(stick.getRawButton(2));
+    jaws.set(false);
 
+    int delay = 0;
+    if (stick.getRawButton(5)) {
+      delay = 1;
+    }
+    if (stick.getRawButton(6)) {
+      delay = 2;
+    }
+    if (delay != 0) {
+   //   System.out.printf("Toggling jaws for %dms", delay);
+      jaws.set(true);
+      try {
+        Thread.sleep(delay);
+      } catch(InterruptedException e) {
+        ;
+      }
+      jaws.set(false);
+    }
     if (is_reverse == true) {
       // setLeds(255, 0);
       setChaseLed();
@@ -238,7 +266,6 @@ public class Robot extends TimedRobot {
       ltarget = pct(stick.getX(), 0);
       rtarget = pct(stick.getY(), 0);
     }
-    System.out.printf("Left: %f, Right: %f\n", stick.getRawAxis(2), stick.getRawAxis(3));
 
     int currentPov = povToDirection();
     // dpad up increases throttle, dpad down decreases
@@ -258,7 +285,7 @@ public class Robot extends TimedRobot {
         }
         previousPov = currentPov;
       }
-      System.out.printf("throttle = %d\n", throttle);
+    //  System.out.printf("throttle = %d\n", throttle);
     }
     //int ltarget = pct(stick.getX(), 0);
    // int rtarget = pct(stick.getY(), 0);
@@ -297,6 +324,7 @@ public class Robot extends TimedRobot {
     if (STOP == true){
       rout = 0;
       lout = 0;
+      honkOfDeath = 1; 
     }
     
     // converts output to a decimal percent to prevent the motors from having only o
